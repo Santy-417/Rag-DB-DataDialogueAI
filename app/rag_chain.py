@@ -1,11 +1,12 @@
+import time
 import pandas as pd
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from sqlalchemy import text
 
 from .config import settings
-from .database import get_db, get_schema
+from .database import get_schema, ejecutar_query
+from .logger import log_consulta
 
 llm = ChatOpenAI(model="gpt-4.1-mini", temperature=0, api_key=settings.OPENAI_API_KEY)
 
@@ -21,6 +22,7 @@ Reglas estrictas:
 - Solo genera consultas SELECT. Nunca DROP, DELETE, UPDATE, INSERT ni ALTER.
 - Máximo 100 filas en el resultado (usa LIMIT 100).
 - Respeta mayúsculas, tildes y género de los valores en los filtros.
+- Los valores de texto como ciudades van con tilde: 'Bogotá', 'Medellín', etc.
 - Responde ÚNICAMENTE con la consulta SQL, sin explicaciones ni texto adicional.
 
 Pregunta: {pregunta_usuario}
@@ -53,7 +55,10 @@ _cadena_respuesta = _prompt_respuesta | llm | StrOutputParser()
 
 def generar_sql(pregunta: str) -> str:
     esquema = get_schema()
-    return _cadena_sql.invoke({"esquema_bd": esquema, "pregunta_usuario": pregunta}).strip()
+    sql = _cadena_sql.invoke({"esquema_bd": esquema, "pregunta_usuario": pregunta}).strip()
+    sql = sql.removeprefix("```sql").removeprefix("```").removesuffix("```").strip()
+    sql = sql.rstrip(";").strip()
+    return sql
 
 
 def ejecutar_sql_seguro(sql: str) -> pd.DataFrame:
@@ -63,9 +68,7 @@ def ejecutar_sql_seguro(sql: str) -> pd.DataFrame:
     bloqueadas = ["drop ", "delete ", "update ", "insert ", "alter "]
     if any(p in sql_lower for p in bloqueadas):
         raise ValueError("La consulta contiene instrucciones no permitidas.")
-    db = get_db()
-    with db._engine.connect() as conn:
-        return pd.read_sql_query(text(sql), conn)
+    return ejecutar_query(sql)
 
 
 def generar_respuesta_natural(pregunta: str, sql: str, resultado: pd.DataFrame) -> str:
@@ -78,10 +81,15 @@ def generar_respuesta_natural(pregunta: str, sql: str, resultado: pd.DataFrame) 
 
 
 def consultar_bd(pregunta: str) -> dict:
+    inicio = time.time()
     try:
         sql = generar_sql(pregunta)
         resultado = ejecutar_sql_seguro(sql)
         respuesta = generar_respuesta_natural(pregunta, sql, resultado)
+        elapsed = time.time() - inicio
+        log_consulta(pregunta, sql, resultado, respuesta, None, elapsed)
         return {"pregunta": pregunta, "sql": sql, "resultado": resultado, "respuesta": respuesta, "error": None}
     except Exception as e:
+        elapsed = time.time() - inicio
+        log_consulta(pregunta, None, None, "", str(e), elapsed)
         return {"pregunta": pregunta, "sql": None, "resultado": None, "respuesta": f"Error: {e}", "error": str(e)}

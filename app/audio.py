@@ -1,26 +1,26 @@
-import os
+import io
 import tempfile
-import whisper
+from openai import OpenAI
 from gtts import gTTS
+from .config import settings
 
-_modelo_whisper = None
-
-
-def _get_whisper():
-    global _modelo_whisper
-    if _modelo_whisper is None:
-        _modelo_whisper = whisper.load_model("base")
-    return _modelo_whisper
+_client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
-def transcribir_audio(ruta_audio: str) -> str:
-    modelo = _get_whisper()
-    resultado = modelo.transcribe(ruta_audio, language="es")
-    return resultado["text"].strip()
+def transcribir_audio(audio_bytes: bytes) -> str:
+    audio_buffer = io.BytesIO(audio_bytes)
+    audio_buffer.name = "recording.wav"
+    resultado = _client.audio.transcriptions.create(
+        model="whisper-1",
+        file=audio_buffer,
+        language="es",
+    )
+    return resultado.text.strip()
 
 
-def texto_a_audio(texto: str) -> str:
-    tts = gTTS(text=texto, lang="es")
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-    tts.save(tmp.name)
-    return tmp.name
+def texto_a_audio(texto: str) -> bytes:
+    tts = gTTS(text=texto[:800], lang="es", slow=False)
+    buf = io.BytesIO()
+    tts.write_to_fp(buf)
+    buf.seek(0)
+    return buf.read()

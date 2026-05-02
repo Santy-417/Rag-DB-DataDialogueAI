@@ -10,3 +10,7 @@ gTTS
 streamlit
 pydantic-settings
 python-dotenv
+rich
+supabase
+openai
+streamlit-mic-recorder

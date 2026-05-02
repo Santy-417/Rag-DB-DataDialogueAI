@@ -23,7 +23,7 @@ ciudad ←── clientes ←── cuentas ←── movimientos
 | cuentas      | Cuentas de ahorros y corriente      |
 | movimientos  | Depósitos, retiros y transferencias |
 
-## Setup
+## Quick Start
 
 **1. Clonar el repositorio**
 ```bash
@@ -31,25 +31,37 @@ git clone https://github.com/Santy-417/Rag-DB-DataDialogueAI.git
 cd Rag-DB-DataDialogueAI
 ```
 
-**2. Instalar dependencias**
+**2. Crear y activar el entorno virtual**
+```bash
+# Crear venv
+python -m venv venv
+
+# Activar (Windows)
+venv\Scripts\activate
+
+# Activar (Mac/Linux)
+source venv/bin/activate
+```
+
+**3. Instalar dependencias**
 ```bash
 pip install -r requirements.txt
 ```
 > Requiere `ffmpeg` instalado en el sistema para las funciones de audio.
 
-**3. Configurar variables de entorno**
+**4. Configurar variables de entorno**
 ```bash
 cp .env.example .env
 # Editar .env con tu API key de OpenAI y la URL de Supabase
 ```
 
-**4. Crear las tablas en Supabase**
+**5. Crear las tablas en Supabase**
 
 Ir al SQL Editor de tu proyecto en Supabase y ejecutar el contenido de `setup_db.sql`.
 
-**5. Correr la aplicación**
+**6. Correr la aplicación**
 ```bash
-streamlit run streamlit_app.py
+streamlit run app.py
 ```
 
 ## Uso
