@@ -123,7 +123,25 @@ with st.sidebar:
         st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.caption("Powered by GPT-4.1-mini · Supabase · Whisper")
+    st.markdown("""
+<div style="
+    padding:0.75rem;
+    background:linear-gradient(135deg,rgba(30,30,50,0.8),rgba(20,20,40,0.9));
+    border:1px solid #2d3147;border-radius:8px;text-align:center;
+">
+    <div style="
+        font-size:0.75rem;font-weight:700;letter-spacing:0.1em;
+        background:linear-gradient(90deg,#6a7fd0,#a0b0ff);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+        background-clip:text;margin-bottom:0.4rem;
+    ">NEXTFLOW AI &copy; 2025</div>
+    <div style="font-size:0.65rem;color:#8b95b0;line-height:1.8;">
+        Santiago Chavarro Osorio<br>
+        Samuel Aristizabal Botero<br>
+        Santiago Andrés Giraldo Granada
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 # ── Estado ────────────────────────────────────────────────────────────────────
 if "mensajes" not in st.session_state:
