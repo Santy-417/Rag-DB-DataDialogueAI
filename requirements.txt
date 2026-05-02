@@ -1,0 +1,12 @@
+langchain
+langchain-core
+langchain-openai
+langchain-community
+sqlalchemy
+psycopg2-binary
+pandas
+openai-whisper
+gTTS
+streamlit
+pydantic-settings
+python-dotenv
